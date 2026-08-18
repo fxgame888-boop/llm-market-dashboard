@@ -1,10 +1,9 @@
 name: update-dashboard
 on:
   schedule:
-    # Taiwan 08:40 = UTC 00:40 (OpenRouter as_of roughly ready by then)
-    # 週一：完整更新（OpenRouter 用量 + SDLLMTK 單價）
+    # Daily Taiwan 08:40 = UTC 00:40
+    # Mon: OpenRouter usage + SDLLMTK price; Tue-Sun: SDLLMTK price only
     - cron: "40 0 * * 1"
-    # 週二～日：只更新 SDLLMTK 單價（GitHub cron 星期 0-6，0=週日）
     - cron: "40 0 * * 2,3,4,5,6,0"
   workflow_dispatch:
 permissions:
@@ -17,19 +16,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Fetch OpenRouter usage (weekly Monday)
+      - name: Fetch OpenRouter usage (Monday or manual)
         if: ${{ github.event.schedule == '40 0 * * 1' || github.event_name == 'workflow_dispatch' }}
+        continue-on-error: true
         run: python scripts/fetch_openrouter_daily.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       - name: Update dashboard (SDLLMTK price daily)
         run: python scripts/update_market_triple.py --skip-mm
-      - name: Publish index.html
+      - name: Publish index.html and price CSV
         run: |
           cp scripts/market_triple_dashboard.html index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
+          git add index.html scripts/sdllmtk_daily.csv scripts/openrouter_usage_daily.csv || true
+          git add scripts/expenditure_proxy_daily.csv scripts/market_triple_meta.json || true
           git diff --cached --quiet && echo "no change" && exit 0
           git commit -m "dashboard update $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push

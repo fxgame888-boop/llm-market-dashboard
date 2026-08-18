@@ -12,13 +12,13 @@ GitHub Pages：部署後見 repo 的 Settings → Pages（預設網址為 `https
 - SDLLMTK 價格：Silicon Data public embed（`portal.silicondata.com/token-index-chart`），每天更新
 - OpenRouter 用量：OpenRouter Datasets API（`openrouter.ai/api/v1/datasets/rankings-daily`），每週一更新
 
-## 自動更新
+## 自動更新（你不用記時間）
 
-GitHub Actions（`.github/workflows/update-dashboard.yml`）：
-- 每天 00:40 UTC（台灣 08:40）：更新 SDLLMTK 單價
-- 每週一 00:40 UTC：完整更新（OpenRouter 用量 + 單價）
+GitHub Actions 檔：`.github/workflows/update-dashboard.yml`
+- **每天台灣時間 08:40**（UTC 00:40）：更新 SDLLMTK 單價（跟官方公開窗口走；官方晚一天，圖就晚一天）
+- **每週一台灣 08:40**：再抓 OpenRouter 用量 + 單價
 
-更新後自動 commit `index.html`，GitHub Pages 即時生效。
+成功後會自動 commit `index.html` 與價格 CSV，Pages 跟著更新。手動也可：Actions → **update-dashboard** → **Run workflow**。
 
 ## 必要 Secret
 
