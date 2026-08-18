@@ -1250,7 +1250,11 @@ def write_combined_dashboard(
   body {{ margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); }}
   .wrap {{ max-width: 1180px; margin: 0 auto; padding: 20px 18px 48px; }}
   header {{ margin-bottom: 16px; }}
-  header h1 {{ font-size: 22px; margin: 0 0 6px; font-weight: 600; }}
+  .headrow {{ display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }}
+  .headrow h1 {{ font-size: 22px; margin: 0 0 6px; font-weight: 600; }}
+  .lang-switch {{ display: inline-flex; border: 1px solid #333; border-radius: 999px; overflow: hidden; flex-shrink: 0; }}
+  .lang-switch button {{ border: 0; background: #1a1a1c; padding: 5px 12px; font-size: 12px; cursor: pointer; color: #aaa; }}
+  .lang-switch button.on {{ background: #12b886; color: #fff; font-weight: 600; }}
   header .sub {{ color: var(--muted); font-size: 13px; line-height: 1.5; }}
   .nav {{ display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 18px; }}
   .nav a {{
@@ -1295,62 +1299,174 @@ def write_combined_dashboard(
 <body>
 <div class="wrap">
   <header>
-    <h1>LLM 市場三圖儀表板</h1>
-    <div class="sub">
-      ① SDLLMTK 價格 · ② OpenRouter 各品牌用量（可點圖例顯示/取消 · 日/週）· ③ 價格×用量支出 proxy ·
-      更新：<span id="upd"></span>
+    <div class="headrow">
+      <div>
+        <h1 data-i18n="title">LLM 市場三圖儀表板</h1>
+        <div class="sub">
+          <span data-i18n="subtitle">① SDLLMTK 價格 · ② OpenRouter 各品牌用量（可點圖例顯示/取消 · 日/週）· ③ 價格×用量支出 proxy ·</span>
+          <span data-i18n="updated">更新：</span><span id="upd"></span>
+        </div>
+      </div>
+      <div class="lang-switch" id="langSwitch">
+        <button type="button" data-lang="zh" class="on">中文</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
     </div>
     <div class="nav">
-      <a href="#s1">① 價格</a>
-      <a href="#s2">② 用量</a>
-      <a href="#s3">③ 支出</a>
+      <a href="#s1" data-i18n="nav1">① 價格</a>
+      <a href="#s2" data-i18n="nav2">② 用量</a>
+      <a href="#s3" data-i18n="nav3">③ 支出</a>
     </div>
     <div class="summary" id="summary"></div>
   </header>
 
   <section class="card" id="s1">
-    <h2>① SDLLMTK 價格</h2>
-    <div class="desc">USD / 百萬 tokens · 官方近7日 + 歷史錨點插值</div>
+    <h2 data-i18n="h2price">① SDLLMTK 價格</h2>
+    <div class="desc" data-i18n="descprice">USD / 百萬 tokens · 官方近7日 + 歷史錨點插值</div>
     <div class="meta" id="meta1"></div>
     <div class="chart-box"><canvas id="c1"></canvas></div>
     <div class="foot" id="foot1"></div>
   </section>
 
   <section class="card" id="s2">
-    <h2>② OpenRouter Token 使用量（多品牌）</h2>
-    <div class="desc">OpenRouter Datasets · 點圖例顯示/取消 · 「全部取消」後再點一品牌可單看 · 預設週加總</div>
+    <h2 data-i18n="h2usage">② OpenRouter Token 使用量（多品牌）</h2>
+    <div class="desc" data-i18n="descusage">OpenRouter Datasets · 點圖例顯示/取消 · 「全部取消」後再點一品牌可單看 · 預設週加總</div>
     <div class="toolbar">
       <div class="seg" id="mode2">
-        <button type="button" data-mode="day">日</button>
-        <button type="button" data-mode="week" class="on">週加總</button>
+        <button type="button" data-mode="day" data-i18n="day">日</button>
+        <button type="button" data-mode="week" class="on" data-i18n="week">週加總</button>
       </div>
       <div class="act">
-        <button type="button" id="btn2AllOn" title="顯示所有品牌 + Total">全部顯示</button>
-        <button type="button" id="btn2AllOff" title="取消全部，再點圖例單選一品牌">全部取消</button>
+        <button type="button" id="btn2AllOn" data-i18n="showall" data-i18n-title="showall_t">全部顯示</button>
+        <button type="button" id="btn2AllOff" data-i18n="hideall" data-i18n-title="hideall_t">全部取消</button>
       </div>
     </div>
     <div class="meta" id="meta2"></div>
     <div class="chart-box tall"><canvas id="c2"></canvas></div>
-    <div class="foot">單位 billion tokens。週 = 完整 ISO 週一～日 7 日加總，x 軸標籤為該週日；未滿週不進圖。Total 為全市場合計線。</div>
+    <div class="foot" data-i18n="footusage">單位 billion tokens。週 = 完整 ISO 週一～日 7 日加總，x 軸標籤為該週日；未滿週不進圖。Total 為全市場合計線。</div>
   </section>
 
   <section class="card" id="s3">
-    <h2>③ 市場支出規模 proxy（價格 × 使用量）</h2>
-    <div class="desc">spend = SDLLMTK × usage_b × 1000 · 週模式用週均價 × 週用量合計</div>
+    <h2 data-i18n="h2spend">③ 市場支出規模 proxy（價格 × 使用量）</h2>
+    <div class="desc" data-i18n="descspend">spend = SDLLMTK × usage_b × 1000 · 週模式用週均價 × 週用量合計</div>
     <div class="toolbar">
       <div class="seg" id="mode3">
-        <button type="button" data-mode="day">日</button>
-        <button type="button" data-mode="week" class="on">週加總</button>
+        <button type="button" data-mode="day" data-i18n="day">日</button>
+        <button type="button" data-mode="week" class="on" data-i18n="week">週加總</button>
       </div>
     </div>
     <div class="meta" id="meta3"></div>
     <div class="chart-box"><canvas id="c3"></canvas></div>
-    <div class="foot">OpenRouter 表面用量 × 全市場混合單價，非全球真實營收、非百分比市占。</div>
+    <div class="foot" data-i18n="footspend">OpenRouter 表面用量 × 全市場混合單價，非全球真實營收、非百分比市占。</div>
   </section>
 </div>
 <script>
 const D = {data_json};
 document.getElementById('upd').textContent = D.updated_at || '';
+
+const I18N = {{
+  zh: {{
+    title: 'LLM 市場三圖儀表板',
+    subtitle: '① SDLLMTK 價格 · ② OpenRouter 各品牌用量（可點圖例顯示/取消 · 日/週）· ③ 價格×用量支出 proxy ·',
+    updated: '更新：',
+    nav1: '① 價格', nav2: '② 用量', nav3: '③ 支出',
+    h2price: '① SDLLMTK 價格',
+    descprice: 'USD / 百萬 tokens · 官方近7日 + 歷史錨點插值',
+    h2usage: '② OpenRouter Token 使用量（多品牌）',
+    descusage: 'OpenRouter Datasets · 點圖例顯示/取消 · 「全部取消」後再點一品牌可單看 · 預設週加總',
+    day: '日', week: '週加總',
+    showall: '全部顯示', hideall: '全部取消',
+    showall_t: '顯示所有品牌 + Total', hideall_t: '取消全部，再點圖例單選一品牌',
+    footusage: '單位 billion tokens。週 = 完整 ISO 週一～日 7 日加總，x 軸標籤為該週日；未滿週不進圖。Total 為全市場合計線。',
+    h2spend: '③ 市場支出規模 proxy（價格 × 使用量）',
+    descspend: 'spend = SDLLMTK × usage_b × 1000 · 週模式用週均價 × 週用量合計',
+    footspend: 'OpenRouter 表面用量 × 全市場混合單價，非全球真實營收、非百分比市占。',
+    sumPrice: '價格 SDLLMTK',
+    sumUsage: '用量週合計 Total',
+    sumSpend: '支出 proxy 週',
+    sumWeekEnd: 'week end',
+    sumUsd: 'USD',
+    hoverHint: '滑過圖表看游標數值',
+    hoverHint2: '滑過看各品牌數值 · 可全部取消後單選',
+    noPrice: '無價格資料',
+    noUsage: '無用量資料',
+    noProduct: '無交叉資料',
+    foot1: '官方 public_embed 點：',
+    foot1b: ' · 其餘為圖表錨點/插值 · X 軸與②對齊（頭尾）',
+    latest: 'Latest',
+    mode: 'mode',
+    axis: 'axis',
+    n: 'n',
+    docTitle: 'LLM 市場三圖｜價格 × OpenRouter 用量 × 支出 proxy'
+  }},
+  en: {{
+    title: 'LLM Market Triple Dashboard',
+    subtitle: '① SDLLMTK price · ② OpenRouter usage by brand (click legend · day/week) · ③ Price×usage spend proxy ·',
+    updated: 'Updated: ',
+    nav1: '① Price', nav2: '② Usage', nav3: '③ Spend',
+    h2price: '① SDLLMTK Price',
+    descprice: 'USD / million tokens · official ~7d window + historical anchor interpolation',
+    h2usage: '② OpenRouter Token Usage (multi-brand)',
+    descusage: 'OpenRouter Datasets · click legend to show/hide · after “Hide all”, click one brand to solo · default weekly sum',
+    day: 'Day', week: 'Weekly sum',
+    showall: 'Show all', hideall: 'Hide all',
+    showall_t: 'Show all brands + Total', hideall_t: 'Hide all, then click one legend to solo',
+    footusage: 'Unit: billion tokens. Week = full ISO Mon–Sun 7-day sum; x-axis label is that Sunday; partial weeks omitted. Total is the market-wide line.',
+    h2spend: '③ Market spend-size proxy (price × usage)',
+    descspend: 'spend = SDLLMTK × usage_b × 1000 · weekly mode uses week-avg price × week usage sum',
+    footspend: 'OpenRouter surface usage × blended market unit price — not real global revenue, not share %.',
+    sumPrice: 'Price SDLLMTK',
+    sumUsage: 'Usage weekly Total',
+    sumSpend: 'Spend proxy (week)',
+    sumWeekEnd: 'week end',
+    sumUsd: 'USD',
+    hoverHint: 'hover chart for crosshair values',
+    hoverHint2: 'hover for per-brand values · hide all then click one to solo',
+    noPrice: 'No price data',
+    noUsage: 'No usage data',
+    noProduct: 'No cross data',
+    foot1: 'Official public_embed points: ',
+    foot1b: ' · other points are chart anchors/interpolation · X-axis aligned with chart ②',
+    latest: 'Latest',
+    mode: 'mode',
+    axis: 'axis',
+    n: 'n',
+    docTitle: 'LLM Market Triple Dashboard'
+  }}
+}};
+
+let LANG = localStorage.getItem('llm_dash_lang') || 'zh';
+function t(key) {{ return (I18N[LANG] && I18N[LANG][key]) || I18N.zh[key] || key; }}
+
+function applyStaticI18n() {{
+  document.querySelectorAll('[data-i18n]').forEach(el => {{
+    const k = el.getAttribute('data-i18n');
+    if (k && I18N[LANG][k]) el.textContent = I18N[LANG][k];
+  }});
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {{
+    const k = el.getAttribute('data-i18n-title');
+    if (k && I18N[LANG][k]) el.title = I18N[LANG][k];
+  }});
+  document.title = t('docTitle');
+  document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant';
+  document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+}}
+
+function setLang(lang) {{
+  LANG = lang;
+  localStorage.setItem('llm_dash_lang', lang);
+  applyStaticI18n();
+  renderSummary();
+  renderMeta1();
+  renderMeta2();
+  renderMeta3();
+  renderFoot1();
+}}
+
+document.getElementById('langSwitch').addEventListener('click', e => {{
+  const b = e.target.closest('button[data-lang]');
+  if (b && b.dataset.lang !== LANG) setLang(b.dataset.lang);
+}});
 
 /** 垂直游標線：滑過任一圖都會畫十字參考線 */
 const crosshairPlugin = {{
@@ -1408,14 +1524,14 @@ function fmtNum(v, digits) {{
   return n.toLocaleString(undefined, {{ maximumFractionDigits: digits ?? 4 }});
 }}
 
-(function summary() {{
+function renderSummary() {{
   const s = D.summary || {{}};
   const boxes = [];
-  if (s.price) boxes.push(`<div class="box"><div class="k">價格 SDLLMTK</div><div class="v" style="color:var(--price)">${{Number(s.price.value).toFixed(4)}}</div><div class="d">${{s.price.date}}</div></div>`);
-  if (s.usage_week_total) boxes.push(`<div class="box"><div class="k">用量週合計 Total</div><div class="v" style="color:var(--accent)">${{Number(s.usage_week_total.value).toLocaleString(undefined,{{maximumFractionDigits:0}})}} b</div><div class="d">week end ${{s.usage_week_total.date}}</div></div>`);
-  if (s.spend_week) boxes.push(`<div class="box"><div class="k">支出 proxy 週</div><div class="v" style="color:var(--spend)">${{Number(s.spend_week.value).toLocaleString(undefined,{{maximumFractionDigits:0}})}}</div><div class="d">USD · ${{s.spend_week.date}}</div></div>`);
+  if (s.price) boxes.push('<div class="box"><div class="k">' + t('sumPrice') + '</div><div class="v" style="color:var(--price)">' + Number(s.price.value).toFixed(4) + '</div><div class="d">' + s.price.date + '</div></div>');
+  if (s.usage_week_total) boxes.push('<div class="box"><div class="k">' + t('sumUsage') + '</div><div class="v" style="color:var(--accent)">' + Number(s.usage_week_total.value).toLocaleString(undefined,{{maximumFractionDigits:0}}) + ' b</div><div class="d">' + t('sumWeekEnd') + ' ' + s.usage_week_total.date + '</div></div>');
+  if (s.spend_week) boxes.push('<div class="box"><div class="k">' + t('sumSpend') + '</div><div class="v" style="color:var(--spend)">' + Number(s.spend_week.value).toLocaleString(undefined,{{maximumFractionDigits:0}}) + '</div><div class="d">' + t('sumUsd') + ' · ' + s.spend_week.date + '</div></div>');
   document.getElementById('summary').innerHTML = boxes.join('');
-}})();
+}}
 
 // last non-null index (axis may pad trailing empty points)
 function lastDefined(arr) {{
@@ -1427,17 +1543,29 @@ function lastDefined(arr) {{
 }}
 
 // ① price
+let priceSeries = [];
+let priceLast = null;
+let priceAxisNote = '';
+function renderMeta1() {{
+  const el = document.getElementById('meta1');
+  if (!priceSeries.length) {{ el.textContent = t('noPrice'); return; }}
+  el.innerHTML = priceLast
+    ? t('latest') + ' <b>' + Number(priceLast.value).toFixed(4) + '</b> · ' + priceLast.date + ' · ' + t('n') + '=' + priceSeries.length + priceAxisNote + ' · <span style="color:#888">' + t('hoverHint') + '</span>'
+    : t('noPrice');
+}}
+function renderFoot1() {{
+  document.getElementById('foot1').textContent = t('foot1') + (D.price.n_official || 0) + t('foot1b');
+}}
 (function() {{
   const series = (D.price && D.price.series) || [];
   if (!series.length) return;
+  priceSeries = series;
   const vals = series.map(r => r.value);
   const li = lastDefined(vals);
-  const last = li >= 0 ? series[li] : null;
-  const axisNote = (D.axis && D.axis.axis_max) ? ` · axis→${{D.axis.axis_max}}` : '';
-  document.getElementById('meta1').innerHTML = last
-    ? `Latest <b>${{Number(last.value).toFixed(4)}}</b> · ${{last.date}} · n=${{series.length}}${{axisNote}} · <span style="color:#888">滑過圖表看游標數值</span>`
-    : '無價格資料';
-  document.getElementById('foot1').textContent = `官方 public_embed 點：${{D.price.n_official||0}} · 其餘為圖表錨點/插值 · X 軸與②對齊（頭尾）`;
+  priceLast = li >= 0 ? series[li] : null;
+  priceAxisNote = (D.axis && D.axis.axis_max) ? ' · ' + t('axis') + '→' + D.axis.axis_max : '';
+  renderMeta1();
+  renderFoot1();
   new Chart(document.getElementById('c1'), {{
     type: 'line',
     data: {{
@@ -1475,6 +1603,7 @@ function lastDefined(arr) {{
 
 // ② usage multi
 let chart2 = null;
+let usageMode = 'week';
 const hiddenUsageLabels = new Set();
 function buildUsageDatasets(mode) {{
   const U = D.usage;
@@ -1543,24 +1672,31 @@ function setAllUsageVisible(on) {{
   }}
   applyHiddenUsage();
 }}
+function renderMeta2() {{
+  const U = D.usage;
+  const el = document.getElementById('meta2');
+  if (!U) {{ el.textContent = t('noUsage'); return; }}
+  const block = U[usageMode];
+  const tot = block.series.Total || [];
+  const li = lastDefined(tot);
+  const last = li >= 0 ? tot[li] : null;
+  const end = li >= 0 ? block.labels[li] : (U.data_end || '');
+  const axisEnd = block.labels[block.labels.length - 1] || '';
+  el.innerHTML = t('latest') + ' Total <b>' + (last != null ? Number(last).toLocaleString(undefined,{{maximumFractionDigits:1}}) : '—') + '</b> · ' + end + ' · ' + t('mode') + '=' + usageMode + ' · ' + t('n') + '=' + block.labels.length + ' · ' + t('axis') + '→' + axisEnd + ' · <span style="color:#888">' + t('hoverHint2') + '</span>';
+}}
 function renderUsage(mode) {{
   const U = D.usage;
   if (!U) {{
-    document.getElementById('meta2').textContent = '無用量資料';
+    document.getElementById('meta2').textContent = t('noUsage');
     return;
   }}
+  usageMode = mode;
   document.querySelectorAll('#mode2 button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
   const data = buildUsageDatasets(mode);
   if (data && data.datasets) {{
     data.datasets.forEach(ds => {{ ds.spanGaps = false; }});
   }}
-  const tot = U[mode].series.Total || [];
-  const li = lastDefined(tot);
-  const last = li >= 0 ? tot[li] : null;
-  const end = li >= 0 ? U[mode].labels[li] : (U.data_end || '');
-  const axisEnd = U[mode].labels[U[mode].labels.length - 1] || '';
-  document.getElementById('meta2').innerHTML =
-    `Latest Total <b>${{last != null ? Number(last).toLocaleString(undefined,{{maximumFractionDigits:1}}) : '—'}}</b> · ${{end}} · mode=${{mode}} · n=${{U[mode].labels.length}} · axis→${{axisEnd}} · <span style="color:#888">滑過看各品牌數值 · 可全部取消後單選</span>`;
+  renderMeta2();
   if (chart2) chart2.destroy();
   chart2 = new Chart(document.getElementById('c2'), {{
     type: 'line',
@@ -1624,24 +1760,31 @@ document.getElementById('mode2').addEventListener('click', e => {{
 }});
 document.getElementById('btn2AllOn').addEventListener('click', () => setAllUsageVisible(true));
 document.getElementById('btn2AllOff').addEventListener('click', () => setAllUsageVisible(false));
-renderUsage((D.usage && D.usage.defaultMode) || 'week');
 
 // ③ product
 let chart3 = null;
-function renderProduct(mode) {{
+let productMode = 'week';
+function renderMeta3() {{
   const P = D.product;
-  if (!P) {{
-    document.getElementById('meta3').textContent = '無交叉資料';
-    return;
-  }}
-  document.querySelectorAll('#mode3 button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
-  const block = P[mode];
+  const el = document.getElementById('meta3');
+  if (!P) {{ el.textContent = t('noProduct'); return; }}
+  const block = P[productMode];
   const li = lastDefined(block.values);
   const last = li >= 0 ? block.values[li] : null;
   const end = li >= 0 ? block.labels[li] : (P.data_end || '');
   const axisEnd = block.labels[block.labels.length - 1] || '';
-  document.getElementById('meta3').innerHTML =
-    `Latest <b>${{last != null ? Number(last).toLocaleString() : '—'}}</b> · ${{end}} · ${{block.unit}} · n=${{block.labels.length}} · axis→${{axisEnd}} · <span style="color:#888">滑過看游標數值</span>`;
+  el.innerHTML = t('latest') + ' <b>' + (last != null ? Number(last).toLocaleString() : '—') + '</b> · ' + end + ' · ' + block.unit + ' · ' + t('n') + '=' + block.labels.length + ' · ' + t('axis') + '→' + axisEnd + ' · <span style="color:#888">' + t('hoverHint') + '</span>';
+}}
+function renderProduct(mode) {{
+  const P = D.product;
+  if (!P) {{
+    document.getElementById('meta3').textContent = t('noProduct');
+    return;
+  }}
+  productMode = mode;
+  document.querySelectorAll('#mode3 button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+  const block = P[mode];
+  renderMeta3();
   if (chart3) chart3.destroy();
   chart3 = new Chart(document.getElementById('c3'), {{
     type: 'line',
@@ -1681,11 +1824,16 @@ document.getElementById('mode3').addEventListener('click', e => {{
   const b = e.target.closest('button[data-mode]');
   if (b) renderProduct(b.dataset.mode);
 }});
+
+applyStaticI18n();
+renderSummary();
+renderUsage((D.usage && D.usage.defaultMode) || 'week');
 renderProduct((D.product && D.product.defaultMode) || 'week');
 </script>
 </body>
 </html>
 """
+
     CHART_DASHBOARD.write_text(html, encoding="utf-8")
 
 
