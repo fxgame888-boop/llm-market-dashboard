@@ -1294,6 +1294,12 @@ def write_combined_dashboard(
   .chart-box.tall {{ height: 420px; }}
   .foot {{ font-size: 11px; color: #777; margin-top: 8px; line-height: 1.5; }}
   a {{ color: #7ec8e3; }}
+  .page-foot {{
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px; padding: 0 2px 4px; color: var(--muted); font-size: 12px;
+  }}
+  .page-foot #traffic {{ cursor: pointer; user-select: none; }}
+  .page-foot #traffic:hover {{ color: #ccc; }}
 </style>
 </head>
 <body>
@@ -1359,6 +1365,9 @@ def write_combined_dashboard(
     <div class="chart-box"><canvas id="c3"></canvas></div>
     <div class="foot" data-i18n="footspend">OpenRouter 表面用量 × 全市場混合單價，非全球真實營收、非百分比市占。</div>
   </section>
+  <div class="page-foot">
+    <div id="traffic" title="點一下切換：在線 → 本月 → 累計">在線—，今天—/峰值—</div>
+  </div>
 </div>
 <script>
 const D = {data_json};
@@ -1397,7 +1406,17 @@ const I18N = {{
     mode: 'mode',
     axis: 'axis',
     n: 'n',
-    docTitle: 'LLM 市場三圖｜價格 × OpenRouter 用量 × 支出 proxy'
+    docTitle: 'LLM 市場三圖｜價格 × OpenRouter 用量 × 支出 proxy',
+    trafficTitle: '點一下切換：在線 → 本月 → 累計',
+    trafficOnlinePrefix: '在線',
+    trafficToday: '，今天',
+    trafficPeak: '/峰值',
+    trafficMonth: '本月 ',
+    trafficMonthMid: ' 次 / ',
+    trafficMonthEnd: ' 人',
+    trafficTotal: '累計 ',
+    trafficTotalMid: ' 次 / ',
+    trafficTotalEnd: ' 人'
   }},
   en: {{
     title: 'LLM Market Triple Dashboard',
@@ -1431,7 +1450,17 @@ const I18N = {{
     mode: 'mode',
     axis: 'axis',
     n: 'n',
-    docTitle: 'LLM Market Triple Dashboard'
+    docTitle: 'LLM Market Triple Dashboard',
+    trafficTitle: 'Click to cycle: online → month → total',
+    trafficOnlinePrefix: 'Online ',
+    trafficToday: ' · today ',
+    trafficPeak: ' / peak ',
+    trafficMonth: 'This month ',
+    trafficMonthMid: ' hits / ',
+    trafficMonthEnd: ' visitors',
+    trafficTotal: 'All-time ',
+    trafficTotalMid: ' hits / ',
+    trafficTotalEnd: ' visitors'
   }}
 }};
 
@@ -1450,6 +1479,8 @@ function applyStaticI18n() {{
   document.title = t('docTitle');
   document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant';
   document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+  const trEl = document.getElementById('traffic');
+  if (trEl) trEl.title = t('trafficTitle');
 }}
 
 function setLang(lang) {{
@@ -1461,6 +1492,7 @@ function setLang(lang) {{
   renderMeta2();
   renderMeta3();
   renderFoot1();
+  paintTraffic(null);
 }}
 
 document.getElementById('langSwitch').addEventListener('click', e => {{
@@ -1829,6 +1861,69 @@ applyStaticI18n();
 renderSummary();
 renderUsage((D.usage && D.usage.defaultMode) || 'week');
 renderProduct((D.product && D.product.defaultMode) || 'week');
+
+const LIVE = 'https://wtx.19850926.xyz/';
+const TRAFFIC_SITE = 'llm';
+const SID_KEY = 'llmDashSid';
+const TRAFFIC_MODES = ['online', 'month', 'total'];
+let trafficMode = 0;
+let lastTraffic = null;
+function visitorSid() {{
+  try {{
+    let s = localStorage.getItem(SID_KEY);
+    if (s && /^[a-zA-Z0-9_-]{{8,64}}$/.test(s)) return s;
+    s = 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem(SID_KEY, s);
+    return s;
+  }} catch (e) {{
+    return 't' + Date.now().toString(36) + 'x';
+  }}
+}}
+function paintTraffic(st) {{
+  if (st) lastTraffic = st;
+  const el = document.getElementById('traffic');
+  const s = lastTraffic;
+  if (!el) return;
+  if (!s) {{
+    el.textContent = t('trafficOnlinePrefix') + '—' + t('trafficToday') + '—' + t('trafficPeak') + '—';
+    return;
+  }}
+  const mode = TRAFFIC_MODES[trafficMode] || 'online';
+  const d = '—';
+  if (mode === 'month') {{
+    el.textContent = t('trafficMonth') + (s.monthPv != null ? s.monthPv : d) + t('trafficMonthMid') + (s.monthUv != null ? s.monthUv : d) + t('trafficMonthEnd');
+  }} else if (mode === 'total') {{
+    el.textContent = t('trafficTotal') + (s.totalPv != null ? s.totalPv : d) + t('trafficTotalMid') + (s.totalUv != null ? s.totalUv : d) + t('trafficTotalEnd');
+  }} else {{
+    el.textContent = t('trafficOnlinePrefix') + (s.online != null ? s.online : d) + t('trafficToday') + (s.uv != null ? s.uv : d) + t('trafficPeak') + (s.peak != null ? s.peak : d);
+  }}
+}}
+async function trafficPing(isHit) {{
+  try {{
+    const sid = visitorSid();
+    const q = LIVE + '?kind=ping&site=' + encodeURIComponent(TRAFFIC_SITE) + '&sid=' + encodeURIComponent(sid) + (isHit ? '&hit=1' : '');
+    const st = await fetch(q, {{ cache: 'no-store' }}).then(r => r.ok ? r.json() : null);
+    if (st && st.ok) paintTraffic(st);
+  }} catch (e) {{}}
+}}
+function startTraffic() {{
+  const el = document.getElementById('traffic');
+  if (el) {{
+    el.addEventListener('click', () => {{
+      trafficMode = (trafficMode + 1) % TRAFFIC_MODES.length;
+      paintTraffic(null);
+    }});
+  }}
+  trafficPing(true);
+  setInterval(() => {{
+    if (document.visibilityState === 'visible') trafficPing(false);
+  }}, 30000);
+  document.addEventListener('visibilitychange', () => {{
+    if (document.visibilityState === 'visible') trafficPing(false);
+  }});
+}}
+startTraffic();
+
 </script>
 </body>
 </html>
